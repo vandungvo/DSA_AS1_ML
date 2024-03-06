@@ -25,10 +25,9 @@ public:
 // 
 // class Image 
 template<typename T>
-class Image : public List<T>
-{
+class Image : public List<T> {
 private:
-    class Node{
+    class Node {
     public:
         T pointer;
         Node* next;
@@ -40,48 +39,130 @@ private:
     Node* tail;
     int size;
 public:
-    Image(){
+    Image() {
         head = tail = nullptr;
         size = 0;
     }
-    ~Image(){
+    ~Image() {
         this->clear();
     }
-    void push_back(T value){
-        //TODO: implement task 1
+    void push_back(T value) {
+        Node *newNode = new Node(value);
+        if (size == 0) {
+            head = tail = newNode;
+        }
+        else {
+            tail->next = newNode;
+            tail = newNode;
+        }
+        size++;
     }
-    void push_front(T value){
-        //TODO: implement task 1 
+    void push_front(T value) {
+        Node *newNode = new Node(value);
+        if (size == 0) {
+            head = tail = newNode;
+        }
+        else {
+            newNode->next = head;
+            head = newNode;
+        }
+        size++;
     }
-    void insert(int index, T value){
-        //TODO: implement task 1
+    void insert(int index, T value) {
+        if (index < 0 || index > size) {
+            return;
+        }
+        if (index == 0) {
+            push_front(value);
+        }
+        else if (index == size) {
+            push_back(value);
+        }
+        else {
+            Node *current = head;
+            for (int i = 0; i < index - 1; i++) {
+                current = current->next;
+            }
+            Node *newNode = new Node(value, current->next);
+            current->next = newNode;
+            size++;
+        }
     }
-    void remove(int index){
-        //TODO: implement task 1
+    void remove(int index) {
+        if (index < 0 || index >= size) {
+            return;
+        }
+        Node *delNode = head;
+        if (size == 1) {
+            head = tail = nullptr;
+        }
+        else if (index == 0) {
+            delNode = head;
+            head = head->next;
+        }
+        else {
+            Node *pre = head;
+            for (int i = 0; i < index - 1; i++)
+            {
+                pre = pre->next;
+            }
+            delNode = pre->next;
+            pre->next = delNode->next;
+            if (index == size - 1) {
+                tail = pre;
+            }
+        }
+        delete delNode;
+        size--;
     }
-    T& get(int index) const{
-        //TODO: implement task 1
+    T& get(int index) const {
+        if (index < 0 || index >= this->size) {
+            throw std::out_of_range("get(): Out of range");
+        }
+        else {
+            Node *current = head;
+            for (int i = 0; i < index; i++) {
+                current = current->next;
+            }
+            return current->pointer;
+        }
     }
-    int length() const{
+    int length() const {
         return size;
     }
-    void clear(){
-        //TODO: implement task 1
+    void clear() {
+        Node *temp = head;
+        while (temp != nullptr) {
+            Node *next = temp->next;
+            delete temp;
+            temp = next;
+        }
+        head = tail = nullptr;
+        size = 0;
     }
-    void print() const{
+    void print() const {
         if(size == 0) OUTPUT << "nullptr" << endl;
         Node* temp = head;
-        for(int i = 0; i < this->size; i++)
-        {
+        for(int i = 0; i < this->size; i++) {
             if(i == this->size - 1) OUTPUT << temp->pointer << endl;
             else OUTPUT << temp->pointer << " ";
             temp = temp->next;
         }
     }
-    void reverse(){  
-        //TODO: implement task 1
+    void reverse() {  
+        Node *prev = nullptr;
+        Node *current = head;
+        Node *next = nullptr;
+        tail = head;
+        while (current != nullptr) {
+            next = current->next;
+            current->next = prev;
+            prev = current;
+            current = next;
+        }
+        head = prev;
     }
-    void printStartToEnd(int start, int end) const{
+    void printStartToEnd(int start, int end) const {
         //TODO: có chỉnh
         Node* temp = head;
         for(int i = 0; i < start; i++) temp = temp->next;
@@ -92,8 +173,18 @@ public:
             temp = temp->next;
         }
     } 
-    List<T>* subList(int start, int end){
-        //TODO: implement task 1
+    List<T>* subList(int start, int end) {
+        if (this->size <= start) {
+            return nullptr;
+        }
+        if (end > size) {
+            end = size;
+        }
+        List<T> *result = new Image<T>();
+        for (int i = start; i < end; i++) {
+            result->push_back(this->get(i));
+        }
+        return result;
     }
 };
 
@@ -107,26 +198,39 @@ private:
     //You may need to define more
 public:
     //! Hàm khởi tạo
-    Dataset()
-    {
+    Dataset() {
         this->nameCol = new Image<string>();
         this->data = new Image<List<int>*>();
     }
     //! Hàm hủy
-    ~Dataset()
-    {
+    ~Dataset() {
         delete data;
         delete nameCol;
     }
     Dataset(const Dataset& other)
     {
         this->nameCol = new Image<string>();
+        this->nameCol = other.nameCol->subList(0, other.nameCol->length());
+
         this->data = new Image<List<int>*>();
-        //TODO: implement Task 2
+        for (int i = 0; i < other.data->length(); i++) {
+            List<int>* temp = new Image<int>();
+            temp = other.data->get(i)->subList(0, other.data->length());
+            this->data->push_back(temp);
+        }
     }
     Dataset& operator=(const Dataset& other)
     {
-        //TODO: implement Task 2
+        this->nameCol = new Image<string>();
+        this->nameCol = other.nameCol->subList(0, other.nameCol->length());
+        
+        this->data = new Image<List<int>*>();
+        for (int i = 0; i < other.data->length(); i++) {
+            List<int>* temp = new Image<int>();
+            temp = other.data->get(i)->subList(0, other.data->length());
+            this->data->push_back(temp);
+        }
+
         return *this;
     }
     bool loadFromCSV(const char* fileName)
@@ -139,11 +243,11 @@ public:
             int number;
 
             //* xử lý hàng đầu tiên chuyển , thành ' ' dùng thư viện stringstream
-            file >> str;
+            file >> str; //* read the first line from file into str
             for (int i = 0; i < str.length(); i++) {
                 if (str[i] == ',') str[i] = ' ';
             }
-            stringstream ss(str);  
+            stringstream ss(str); //* extract individual words  
             while(ss >> str) nameCol->push_back(str);
 
              //* xử lý các hàng còn lại , thành ' ' dùng thư viện stringstream
@@ -163,36 +267,85 @@ public:
     }
     void getShape(int& nRows, int& nCols) const
     {
-        //TODO: implement Task 2
+        nRows = this->data->length();
+        if (nRows) nCols = this->data->get(0)->length();
     }
     void columns() const
     {
-        //TODO: implement Task 2
+        int nCols = this->nameCol->length();
+        for (int i = 0; i < nCols; i++) {
+            cout << this->nameCol->get(i) << " ";
+        }
     }
     void printHead(int nRows = 5, int nCols = 5) const
     {
         if(nRows <= 0 || nCols <= 0) return;
-        //TODO: implement Task 2
+        int mRows = this->data->length() + 1;
+        int mCols = this->nameCol->length();
+        if (nRows > mRows) nRows = mRows;
+        if (nCols > mCols) nCols = mCols; 
+
+        this->nameCol->printStartToEnd(0, nCols);
+        for (int i = 0; i < nRows; i++) {
+            this->data->get(i)->printStartToEnd(0, nCols);
+        }
 
     }
     void printTail(int nRows = 5, int nCols = 5) const
     {
         if(nRows <= 0 || nCols <= 0)  return;
-        //TODO: implement Task 2
+        int mRows = this->data->length() + 1;
+        int mCols = this->nameCol->length();
+        if (nRows > mRows) nRows = mRows;
+        if (nCols > mCols) nCols = mCols; 
+
+        this->nameCol->printStartToEnd(0, nCols);
+        this->nameCol->printStartToEnd(0, nCols);
+        for (int i = nCols; i < mRows; i++) {
+            this->data->get(i)->printStartToEnd(mCols - nCols, mCols);
+        }                
     }
     bool drop(int axis = 0, int index = 0, std::string columns = "")
     {
-        //TODO: implement Task 2
+        int nRows = this->data->length();
+        if (axis == 0) {
+            if (index >= nRows || index < 0) return false;
+            this->data->remove(index);
+            return true;
+        }
+        else if (axis == 1) {
+            int nCols = this->nameCol->length();
+            int index = 0;
+            for (; index < nCols; index++) {
+                if (this->nameCol->get(index) == columns) break;
+            }
+            for (int i = 0; i < nRows; i++) this->data->get(i)->remove(index);
+        } 
         return false;
     }
     Dataset extract(int startRow = 0, int endRow = -1, int startCol = 0, int endCol = -1) const
     {
-        //TODO: implement Task 2
+        Dataset result;
+        int nRows = this->data->length();
+        int nCols = this->nameCol->length();
+        if (endRow == -1) endRow = nRows;
+        if (endCol == -1) endCol = nCols;
+        if (startRow < 0 || startRow >= nRows || endRow <= startRow || endRow > nRows) return result;
+        result.nameCol = this->nameCol->subList(startCol, endCol);
+        for (int i = startRow; i < endRow; i++) {
+            List<int>* temp = this->data->get(i)->subList(startCol, endCol);
+            result.data->push_back(temp);
+        }
+        return result;
     }
 
 
     double distanceEuclidean(const List<int>* x, const List<int>* y) const{
-        //TODO: implement Task 2 copy code từ implement Task 1 chỉnh
+        double distance = 0.0;
+        for (int i = 0; i < x->length(); i++) {
+            distance += pow(x->get(i) - y->get(i), 2);
+        }
+        return sqrt(distance);
     }
 
 

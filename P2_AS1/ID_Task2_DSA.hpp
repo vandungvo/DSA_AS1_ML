@@ -215,7 +215,7 @@ public:
         this->data = new Image<List<int>*>();
         for (int i = 0; i < other.data->length(); i++) {
             List<int>* temp = new Image<int>();
-            temp = other.data->get(i)->subList(0, other.data->length());
+            temp = other.data->get(i)->subList(0, other.nameCol->length());
             this->data->push_back(temp);
         }
     }
@@ -227,7 +227,7 @@ public:
         this->data = new Image<List<int>*>();
         for (int i = 0; i < other.data->length(); i++) {
             List<int>* temp = new Image<int>();
-            temp = other.data->get(i)->subList(0, other.data->length());
+            temp = other.data->get(i)->subList(0, other.nameCol->length());
             this->data->push_back(temp);
         }
 
@@ -272,20 +272,17 @@ public:
     }
     void columns() const
     {
-        int nCols = this->nameCol->length();
-        for (int i = 0; i < nCols; i++) {
-            cout << this->nameCol->get(i) << " ";
-        }
+        this->nameCol->printStartToEnd(0, this->nameCol->length());
     }
     void printHead(int nRows = 5, int nCols = 5) const
     {
         if(nRows <= 0 || nCols <= 0) return;
-        int mRows = this->data->length() + 1;
+        int mRows = this->data->length();
         int mCols = this->nameCol->length();
         if (nRows > mRows) nRows = mRows;
         if (nCols > mCols) nCols = mCols; 
 
-        this->nameCol->printStartToEnd(0, nCols);
+        if (mRows) this->nameCol->printStartToEnd(0, nCols);
         for (int i = 0; i < nRows; i++) {
             this->data->get(i)->printStartToEnd(0, nCols);
         }
@@ -294,20 +291,20 @@ public:
     void printTail(int nRows = 5, int nCols = 5) const
     {
         if(nRows <= 0 || nCols <= 0)  return;
-        int mRows = this->data->length() + 1;
+        int mRows = this->data->length();
         int mCols = this->nameCol->length();
         if (nRows > mRows) nRows = mRows;
         if (nCols > mCols) nCols = mCols; 
 
-        this->nameCol->printStartToEnd(0, nCols);
-        this->nameCol->printStartToEnd(0, nCols);
-        for (int i = nCols; i < mRows; i++) {
+        if (mRows) this->nameCol->printStartToEnd(mCols - nCols, mCols);
+        for (int i = mRows - nRows; i < mRows; i++) {
             this->data->get(i)->printStartToEnd(mCols - nCols, mCols);
         }                
     }
     bool drop(int axis = 0, int index = 0, std::string columns = "")
     {
         int nRows = this->data->length();
+        if (!nRows) return false;
         if (axis == 0) {
             if (index >= nRows || index < 0) return false;
             this->data->remove(index);
@@ -315,11 +312,19 @@ public:
         }
         else if (axis == 1) {
             int nCols = this->nameCol->length();
-            int index = 0;
-            for (; index < nCols; index++) {
-                if (this->nameCol->get(index) == columns) break;
+            int index = -1;
+            for (int i = 0; i < nCols; i++) {
+                if (this->nameCol->get(i) == columns) {
+                    index = i;
+                    break;
+                }
             }
-            for (int i = 0; i < nRows; i++) this->data->get(i)->remove(index);
+            if (index == -1) return false;
+            this->nameCol->remove(index);
+            for (int i = 0; i < nRows; i++) {
+                this->data->get(i)->remove(index);
+            }
+            return true;
         } 
         return false;
     }
@@ -328,12 +333,20 @@ public:
         Dataset result;
         int nRows = this->data->length();
         int nCols = this->nameCol->length();
-        if (endRow == -1) endRow = nRows;
-        if (endCol == -1) endCol = nCols;
-        if (startRow < 0 || startRow >= nRows || endRow <= startRow || endRow > nRows) return result;
-        result.nameCol = this->nameCol->subList(startCol, endCol);
-        for (int i = startRow; i < endRow; i++) {
-            List<int>* temp = this->data->get(i)->subList(startCol, endCol);
+        if (endRow == -1) {
+            startRow = 0;
+            endRow = nRows - 1;
+        }
+        else if (endRow >= nRows) endRow = nRows - 1;
+        if (endCol == -1) {
+            startCol = 0;
+            endCol = nCols;
+        }
+        else if (endCol >= nCols) endCol = nCols - 1;
+        if (startRow > nRows || startCol > nCols || startRow > endRow || startCol > endCol) return Dataset();
+        result.nameCol = this->nameCol->subList(startCol, endCol + 1);
+        for (int i = startRow; i <= endRow; i++) {
+            List<int>* temp = this->data->get(i)->subList(startCol, endCol + 1);
             result.data->push_back(temp);
         }
         return result;
@@ -382,22 +395,22 @@ public:
     {   
         return y_test.score(y_pred);
     }
-};
 
-void train_test_split(Dataset& X, Dataset& Y, double test_size, 
+    void train_test_split(Dataset& X, Dataset& Y, double test_size, 
                         Dataset& X_train, Dataset& X_test, Dataset& Y_train, Dataset& Y_test)
-{
-    //* phân chia X
-    int nRowsX, nColsX;
-    X.getShape(nRowsX, nColsX);
-    X_train = X.extract(0, test_size * nRowsX, 0, -1);
-    X_test = X.extract(test_size * nRowsX, -1 , 0, -1);
+    {
+        //* phân chia X
+        int nRowsX, nColsX;
+        X.getShape(nRowsX, nColsX);
+        X_train = X.extract(0, test_size * nRowsX, 0, -1);
+        X_test = X.extract(test_size * nRowsX, -1 , 0, -1);
 
-    //* phân chia Y
-    int nRowsY, nColsY;
-    Y.getShape(nRowsY, nColsY);
-    Y_train = Y.extract(0, test_size * nRowsY, 0, -1);
-    Y_test = Y.extract(test_size * nRowsY, -1 , 0, -1);
-}
+        //* phân chia Y
+        int nRowsY, nColsY;
+        Y.getShape(nRowsY, nColsY);
+        Y_train = Y.extract(0, test_size * nRowsY, 0, -1);
+        Y_test = Y.extract(test_size * nRowsY, -1 , 0, -1);
+    }
+};
 
 // Please add more or modify as needed

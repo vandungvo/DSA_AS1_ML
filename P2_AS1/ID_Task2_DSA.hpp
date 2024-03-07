@@ -207,8 +207,7 @@ public:
         delete data;
         delete nameCol;
     }
-    Dataset(const Dataset& other)
-    {
+    Dataset(const Dataset& other) {
         this->nameCol = new Image<string>();
         this->nameCol = other.nameCol->subList(0, other.nameCol->length());
 
@@ -219,8 +218,7 @@ public:
             this->data->push_back(temp);
         }
     }
-    Dataset& operator=(const Dataset& other)
-    {
+    Dataset& operator=(const Dataset& other) {
         this->nameCol = new Image<string>();
         this->nameCol = other.nameCol->subList(0, other.nameCol->length());
         
@@ -233,12 +231,10 @@ public:
 
         return *this;
     }
-    bool loadFromCSV(const char* fileName)
-    {   
+    bool loadFromCSV(const char* fileName) {   
         ifstream file(fileName);
         //* kiểm tra mở file
-        if(file.is_open())
-        {
+        if(file.is_open()) {
             string str;
             int number;
 
@@ -251,8 +247,7 @@ public:
             while(ss >> str) nameCol->push_back(str);
 
              //* xử lý các hàng còn lại , thành ' ' dùng thư viện stringstream
-            while(file >> str)
-            {
+            while(file >> str) {
                 for (int i = 0; i < str.length(); i++) {
                     if (str[i] == ',') str[i] = ' ';
                 }
@@ -265,17 +260,14 @@ public:
         }
         return false;
     }
-    void getShape(int& nRows, int& nCols) const
-    {
+    void getShape(int& nRows, int& nCols) const {
         nRows = this->data->length();
         if (nRows) nCols = this->data->get(0)->length();
     }
-    void columns() const
-    {
+    void columns() const {
         this->nameCol->printStartToEnd(0, this->nameCol->length());
     }
-    void printHead(int nRows = 5, int nCols = 5) const
-    {
+    void printHead(int nRows = 5, int nCols = 5) const {
         if(nRows <= 0 || nCols <= 0) return;
         int mRows = this->data->length();
         int mCols = this->nameCol->length();
@@ -288,8 +280,7 @@ public:
         }
 
     }
-    void printTail(int nRows = 5, int nCols = 5) const
-    {
+    void printTail(int nRows = 5, int nCols = 5) const {
         if(nRows <= 0 || nCols <= 0)  return;
         int mRows = this->data->length();
         int mCols = this->nameCol->length();
@@ -301,8 +292,7 @@ public:
             this->data->get(i)->printStartToEnd(mCols - nCols, mCols);
         }                
     }
-    bool drop(int axis = 0, int index = 0, std::string columns = "")
-    {
+    bool drop(int axis = 0, int index = 0, std::string columns = "") {
         int nRows = this->data->length();
         if (!nRows) return false;
         if (axis == 0) {
@@ -328,8 +318,7 @@ public:
         } 
         return false;
     }
-    Dataset extract(int startRow = 0, int endRow = -1, int startCol = 0, int endCol = -1) const
-    {
+    Dataset extract(int startRow = 0, int endRow = -1, int startCol = 0, int endCol = -1) const {
         Dataset result;
         int nRows = this->data->length();
         int nCols = this->nameCol->length();
@@ -352,8 +341,7 @@ public:
         return result;
     }
 
-
-    double distanceEuclidean(const List<int>* x, const List<int>* y) const{
+    double distanceEuclidean(const List<int>* x, const List<int>* y) const {
         double distance = 0.0;
         for (int i = 0; i < x->length(); i++) {
             distance += pow(x->get(i) - y->get(i), 2);
@@ -361,14 +349,11 @@ public:
         return sqrt(distance);
     }
 
-
-    Dataset predict(const Dataset& X_train, const Dataset& Y_train, const int k) const
-    {
+    Dataset predict(const Dataset& X_train, const Dataset& Y_train, const int k) const {
        //TODO: implement Task 3 
        return Dataset();
     }
-    double score(const Dataset& y_test) const
-    {   
+    double score(const Dataset& y_test) const {   
         //TODO: implement Task 3 
         return -1;
     }
@@ -381,36 +366,33 @@ private:
     Dataset Y_train;
     //You may need to define more
 public:
-    kNN(int k = 5):k(k){};
-    void fit(const Dataset& X_train, const Dataset& y_train)
-    {
+    kNN(int k = 5): k(k) {};
+    void fit(const Dataset& X_train, const Dataset& y_train) {
         this->X_train = X_train;
         this->Y_train = y_train;
     }
-    Dataset predict(const Dataset& X_test)
-    { 
+    Dataset predict(const Dataset& X_test) { 
         return X_test.predict(this->X_train, this->Y_train, this->k);
     }
-    double score(const Dataset& y_test, const Dataset& y_pred)
-    {   
+    double score(const Dataset& y_test, const Dataset& y_pred) {   
         return y_test.score(y_pred);
     }
-
-    void train_test_split(Dataset& X, Dataset& Y, double test_size, 
-                        Dataset& X_train, Dataset& X_test, Dataset& Y_train, Dataset& Y_test)
-    {
-        //* phân chia X
-        int nRowsX, nColsX;
-        X.getShape(nRowsX, nColsX);
-        X_train = X.extract(0, test_size * nRowsX, 0, -1);
-        X_test = X.extract(test_size * nRowsX, -1 , 0, -1);
-
-        //* phân chia Y
-        int nRowsY, nColsY;
-        Y.getShape(nRowsY, nColsY);
-        Y_train = Y.extract(0, test_size * nRowsY, 0, -1);
-        Y_test = Y.extract(test_size * nRowsY, -1 , 0, -1);
-    }
 };
+
+/*
+void train_test_split(Dataset& X, Dataset& Y, double test_size, Dataset& X_train, Dataset& X_test, Dataset& Y_train, Dataset& Y_test) {
+    //* phân chia X
+    int nRowsX, nColsX;
+    X.getShape(nRowsX, nColsX);
+    X_train = X.extract(0, test_size * nRowsX, 0, -1);
+    X_test = X.extract(test_size * nRowsX, -1 , 0, -1);
+
+    //* phân chia Y
+    int nRowsY, nColsY;
+    Y.getShape(nRowsY, nColsY);
+    Y_train = Y.extract(0, test_size * nRowsY, 0, -1);
+    Y_test = Y.extract(test_size * nRowsY, -1 , 0, -1);
+}
+*/
 
 // Please add more or modify as needed

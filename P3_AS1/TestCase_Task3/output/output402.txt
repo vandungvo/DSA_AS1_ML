@@ -9,13 +9,9 @@ label
 9 0
 9 9
 9 0
+Line feature : 
 Line X_train : 
-1
-1
-0
-9
 Line X_test : 
-0
 Line y_train : 
 label
 0
@@ -26,6 +22,4 @@ Line y_test :
 label
 9
 Line y_predict : 
-label
-2
-Accuracy: 0
+Accuracy: -1

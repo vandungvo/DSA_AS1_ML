@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "*.embeddedhtml": "html",
+        "array": "cpp",
+        "*.tcc": "cpp",
+        "istream": "cpp",
+        "tuple": "cpp",
+        "utility": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "vector": "cpp"
+    }
+}

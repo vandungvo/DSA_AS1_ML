@@ -2,8 +2,10 @@
 
 void tc1()
 {
+    //! Load dataset
     Dataset dataset;
     dataset.loadFromCSV("mnist.csv");
+
     dataset.printHead(10, 10);
     cout << endl;
     dataset.printTail(10, 10);
@@ -12,15 +14,18 @@ void tc1()
     dataset.getShape(nRows, nCols);
     cout << "Shape: " << nRows << "x" << nCols << endl;
 
+    //! Extract feature and label
     kNN knn;
-    Dataset X_train, X_test, y_train, y_test;
     Dataset feature = dataset.extract(0, -1, 1, -1);
     Dataset label = dataset.extract(0, -1, 0, 0);
+
     feature.getShape(nRows, nCols);
     cout << "Feature shape: " << nRows << "x" << nCols << endl;
     label.getShape(nRows, nCols);
     cout << "Label shape: " << nRows << "x" << nCols << endl;
 
+    //! Split dataset into train and test
+    Dataset X_train, X_test, y_train, y_test;
     train_test_split(feature, label, 0.2, X_train, X_test, y_train, y_test);
 
     X_train.getShape(nRows, nCols);
@@ -32,17 +37,17 @@ void tc1()
     y_test.getShape(nRows, nCols);
     cout << "y_test shape: " << nRows << "x" << nCols << endl;
 
+    //! Predict and evaluate
     knn.fit(X_train, y_train);
     Dataset y_pred = knn.predict(X_test);
-
+    double accuracy = knn.score(y_test, y_pred);
+    
     cout << "y_pred" << endl;
     y_pred.printHead(10, 10);
     cout << endl;
     cout << "y_test" << endl;
     y_test.printHead(10, 10);
     cout << endl;
-
-    double accuracy = knn.score(y_test, y_pred);
     cout << "Accuracy: " << accuracy << endl;
 }
 
